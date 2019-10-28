@@ -69,6 +69,9 @@ class Degrade(metaclass=abc.ABCMeta):
     def make_command(self):
         pass
 
+    @abc.abstractmethod
+    def reset_old_config(self):
+        pass
 
 class DegradeInvoker:
     """
