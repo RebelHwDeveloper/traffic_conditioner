@@ -19,14 +19,14 @@ def check_interface(interface):
 
 if __name__ == '__main__':
     config = ConfigParser()
-    config.read(os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../config.ini')))
+    config.read(os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini')))
     parser = argparse.ArgumentParser(prog='traffic_conditioner',
     formatter_class=argparse.RawDescriptionHelpFormatter, description=textwrap.dedent('''\
          Usage of this application
          --------------------------------
-             traffic_conditioner -i <interface> -r <rate limit>
+             sudo python3 -i <interface> 
              
-         The rate limit is to be done...  
+         The explicit rate limit is to be done...  
          '''))
     parser.add_argument(
         '-i', '--interface',
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    print(args.accumulate(args.interface))
+    print(args.interface)
 
     obj = Gentle(config, args.interface)
     obj.make_command()

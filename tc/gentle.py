@@ -47,7 +47,7 @@ class Gentle(Degrade):
             'correlation': float(self._parser['Gentle']['DuplicateCorrelation']),
         }
 
-    def add_root_bucket(self):
+    def reset_old_config(self):
         """Helper method to add he main hook once the old configuration is wiped out"""
         stringa = "tc qdisc del dev " + self.__interface + " root"
         cmd = shlex.split(stringa)
@@ -60,7 +60,7 @@ class Gentle(Degrade):
 
         if e.decode('ascii') != "":
             raise RuntimeError(e.decode('ascii'))
-        return str(proc.returncode)
+        return proc.returncode
 
     def make_command(self):
         """
@@ -89,8 +89,9 @@ class Gentle(Degrade):
             raise RuntimeWarning("Old configuration not eliminated")
 
         if e.decode('ascii') != "":
-            raise RuntimeError(e.decode('ascii'))
-        return str(proc.returncode)
+            if proc.returncode == 2:
+                raise RuntimeWarning(e.decode('ascii')+"\nUsing stale configuration, wipe the old settings")
+        return proc.returncode
 
     def __init__(self, config_parser, interface):
         self.__interface = interface

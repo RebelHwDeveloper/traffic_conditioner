@@ -1,11 +1,11 @@
+import shlex
+import subprocess
 from unittest import TestCase
 from configparser import ConfigParser
 
-import patch as patch
-
 from tc.gentle import Gentle
 
-interface = "ens33"
+interface = "eth1"
 config = ConfigParser()
 
 
@@ -44,19 +44,20 @@ class TestGentle(TestCase):
     def test___init__(self):
         self.assertRaises(AttributeError, Gentle, config, interface="eth0")
 
-    def test_eliminate_old(self):
-        # Test when interface is not
-        # right if put with other test it will break them
-        # Casino da testare
-        self.assertRaises(AttributeError, Gentle, config, interface="eth0")
-
     def test_make_command(self):
-        obj = Gentle(config, "ens33")
-        self.assertEqual(obj.make_command(),
-                         "tc qdisc add dev ens33 root netem delay 40ms 5ms 5% "
-                         "distribution normal loss 3.0% 25.0% corrupt 0.01% duplicate 0.001%")
+        obj = Gentle(config, interface)
+        self.assertEqual(obj.make_command(), str(0))
 
-    def test_add_root_bucket(self):
-        obj = Gentle(config, "ens33")
-        self.assertEqual(obj.add_root_bucket(),
-                         "tc qdisc del dev ens33 root")
+    def test_reset_old_config(self):
+        """This test is idempotent I can run it how many times i want it
+            I simply put a new qdisc and the system will erase it"""
+        obj = Gentle(config, interface)
+        stringa = "tc qdisc add dev " + interface + " root netem delay 200ms"
+        cmd = shlex.split(stringa)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            o, e = proc.communicate(timeout=1)
+        except:
+            pass
+        self.assertEqual(obj.reset_old_config(), 0)
+        # self.assertRaises(RuntimeWarning, "RTNETLINK answers: File exists")
