@@ -1,11 +1,10 @@
 import abc
-import sys
-
 import ifaddr as ifaddr
 
-
 class Command(metaclass=abc.ABCMeta):
-    """The command interface that declares a method (execute) for a particular degrade interface"""
+    """
+    This is the class used in the Command pattern
+    """
 
     @abc.abstractmethod
     def execute(self):
@@ -14,7 +13,7 @@ class Command(metaclass=abc.ABCMeta):
 
 class Degrade(metaclass=abc.ABCMeta):
     """
-    Class to be overridden by child classes. This is the most general degrading strategy. It is composed of 3 parameters:
+
     """
 
     def eliminate_old_config(self, interface):

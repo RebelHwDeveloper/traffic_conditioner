@@ -5,6 +5,10 @@ from tc import Degrade, Command
 
 
 class Gentle(Degrade):
+    """
+
+    """
+
     # def eliminate_old_config(interface):
     #     super(Gentle, self).eliminate_old_config(interface)
 
@@ -67,14 +71,14 @@ class Gentle(Degrade):
             2. The old configration has been wiped out
         After add root bucket you have the main hook to put your degrader or rate limiter
         """
-        # todo: find a way to test simply
         # self.add_root_bucket()
 
         stringa = "tc qdisc add dev " + self.__interface + " root netem "
         stringa += "delay " + self.latency['latency'] + "ms " + self.latency['jitter'] + "ms " + self.latency[
             'correlation'] + "% distribution " + self.latency['distribution']
         stringa += " loss " + self.drop['probability'].__str__() + "% " + self.drop['correlation'].__str__() + "%"
-        stringa += " corrupt " + self.corrupt['probability'].__str__() + "% duplicate " +self.duplicate['probability'].__str__() +"%"
+        stringa += " corrupt " + self.corrupt['probability'].__str__() + "% duplicate " + \
+                   self.duplicate['probability'].__str__() + "%"
 
         cmd = shlex.split(stringa)
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
