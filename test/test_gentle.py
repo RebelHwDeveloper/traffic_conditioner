@@ -44,6 +44,11 @@ class TestGentle(TestCase):
     def test___init__(self):
         self.assertRaises(AttributeError, Gentle, config, interface="eth0")
 
+    # def test_make_command(self):
+    #       Tanto questo già passava....
+    #     obj = Gentle(config, interface)
+    #     self.assertEqual(obj.make_command(), str(0))
+
     def test_make_command(self):
         obj = Gentle(config, interface)
         self.assertEqual(obj.make_command(), str(0))
