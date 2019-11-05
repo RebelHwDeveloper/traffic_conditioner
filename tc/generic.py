@@ -4,13 +4,10 @@ import subprocess
 from tc import Degrade, Command
 
 
-class Gentle(Degrade):
-    """
-
-    """
+class Generic(Degrade):
 
     # def eliminate_old_config(interface):
-    #     super(Gentle, self).eliminate_old_config(interface)
+    #     super(Generic, self).eliminate_old_config(interface)
 
     @property
     def reorder(self) -> bool:
@@ -90,12 +87,12 @@ class Gentle(Degrade):
 
         if e.decode('ascii') != "":
             if proc.returncode == 2:
-                raise RuntimeWarning(e.decode('ascii')+"\nUsing stale configuration, wipe the old settings")
-        return proc.returncode
+                raise RuntimeWarning(e.decode('ascii') + "\nUsing stale configuration, wipe the old settings")
+        return str(proc.returncode)
 
     def __init__(self, config_parser, interface):
         self.__interface = interface
-        super(Gentle, self).__init__(self.__interface)
+        super(Generic, self).__init__(self.__interface)
         self._parser = config_parser
 
     @property
@@ -164,9 +161,8 @@ class Gentle(Degrade):
         }
 
 
-class GentleCommand(Command):
-
-    def __init__(self, profile: Gentle):
+class GenericCommand(Command):
+    def __init__(self, profile: Generic):
         self._profile = profile
 
     def execute(self):

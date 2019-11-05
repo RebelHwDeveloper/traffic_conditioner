@@ -3,7 +3,8 @@ import textwrap
 
 import ifaddr
 
-from tc.gentle import Gentle
+from tc import DegradeInvoker
+from tc.generic import Generic, GenericCommand
 from configparser import ConfigParser
 import os
 
@@ -38,5 +39,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args.interface)
 
-    obj = Gentle(config, args.interface)
-    obj.make_command()
+    invoker = DegradeInvoker(
+            GenericCommand(
+                Generic(config, args.interface)
+            ))
+    invoker.invoke()
