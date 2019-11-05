@@ -22,7 +22,7 @@ class Generic(Degrade):
             reorder : bool, optional
                 If the network will reorder randomly packets
         """
-        return bool(self._parser['Gentle']['Reorder'])
+        return bool(self._parser[self._key]['Reorder'])
 
     @property
     def duplicate(self) -> dict:
@@ -40,8 +40,8 @@ class Generic(Degrade):
                 The correlation of duplication with previous packets
         """
         return {
-            'probability': float(self._parser['Gentle']['DuplicateChance']),
-            'correlation': float(self._parser['Gentle']['DuplicateCorrelation']),
+            'probability': float(self._parser[self._key]['DuplicateChance']),
+            'correlation': float(self._parser[self._key]['DuplicateCorrelation']),
         }
 
     def reset_old_config(self):
@@ -90,7 +90,8 @@ class Generic(Degrade):
                 raise RuntimeWarning(e.decode('ascii') + "\nUsing stale configuration, wipe the old settings")
         return str(proc.returncode)
 
-    def __init__(self, config_parser, interface):
+    def __init__(self, config_parser, interface, key):
+        self._key = key
         self.__interface = interface
         super(Generic, self).__init__(self.__interface)
         self._parser = config_parser
@@ -110,8 +111,8 @@ class Generic(Degrade):
                 The correlation of corruption with previous packets
         """
         return {
-            'probability': float(self._parser['Gentle']['CorruptProbability']),
-            'correlation': float(self._parser['Gentle']['CorruptCorrelation']),
+            'probability': float(self._parser[self._key]['CorruptProbability']),
+            'correlation': float(self._parser[self._key]['CorruptCorrelation']),
         }
 
     @property
@@ -134,10 +135,10 @@ class Generic(Degrade):
                 How much is correlated with the value of the previous packets
         """
         return {
-            'latency': self._parser.get('Gentle', 'LatencyMean'),
-            'jitter': self._parser.get('Gentle', 'LatencyVariance'),
-            'distribution': self._parser.get('Gentle', 'LatencyDistribution'),
-            'correlation': self._parser.get('Gentle', 'LatencyCorrelation'),
+            'latency': self._parser.get(self._key, 'LatencyMean'),
+            'jitter': self._parser.get(self._key, 'LatencyVariance'),
+            'distribution': self._parser.get(self._key, 'LatencyDistribution'),
+            'correlation': self._parser.get(self._key, 'LatencyCorrelation'),
         }
 
     @property
@@ -156,8 +157,8 @@ class Generic(Degrade):
                 How much is correlated with the value of the previous packets
         """
         return {
-            'probability': float(self._parser['Gentle']['DropProbability']),
-            'correlation': float(self._parser['Gentle']['DropCorrelation']),
+            'probability': float(self._parser[self._key]['DropProbability']),
+            'correlation': float(self._parser[self._key]['DropCorrelation']),
         }
 
 
