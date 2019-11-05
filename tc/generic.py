@@ -4,13 +4,10 @@ import subprocess
 from tc import Degrade, Command
 
 
-class Gentle(Degrade):
-    """
-
-    """
+class Generic(Degrade):
 
     # def eliminate_old_config(interface):
-    #     super(Gentle, self).eliminate_old_config(interface)
+    #     super(Generic, self).eliminate_old_config(interface)
 
     @property
     def reorder(self) -> bool:
@@ -25,7 +22,7 @@ class Gentle(Degrade):
             reorder : bool, optional
                 If the network will reorder randomly packets
         """
-        return bool(self._parser['Gentle']['Reorder'])
+        return bool(self._parser[self._key]['Reorder'])
 
     @property
     def duplicate(self) -> dict:
@@ -43,8 +40,8 @@ class Gentle(Degrade):
                 The correlation of duplication with previous packets
         """
         return {
-            'probability': float(self._parser['Gentle']['DuplicateChance']),
-            'correlation': float(self._parser['Gentle']['DuplicateCorrelation']),
+            'probability': float(self._parser[self._key]['DuplicateChance']),
+            'correlation': float(self._parser[self._key]['DuplicateCorrelation']),
         }
 
     def reset_old_config(self):
@@ -90,12 +87,13 @@ class Gentle(Degrade):
 
         if e.decode('ascii') != "":
             if proc.returncode == 2:
-                raise RuntimeWarning(e.decode('ascii')+"\nUsing stale configuration, wipe the old settings")
-        return proc.returncode
+                raise RuntimeWarning(e.decode('ascii') + "\nUsing stale configuration, wipe the old settings")
+        return str(proc.returncode)
 
-    def __init__(self, config_parser, interface):
+    def __init__(self, config_parser, interface, key):
+        self._key = key
         self.__interface = interface
-        super(Gentle, self).__init__(self.__interface)
+        super(Generic, self).__init__(self.__interface)
         self._parser = config_parser
 
     @property
@@ -113,8 +111,8 @@ class Gentle(Degrade):
                 The correlation of corruption with previous packets
         """
         return {
-            'probability': float(self._parser['Gentle']['CorruptProbability']),
-            'correlation': float(self._parser['Gentle']['CorruptCorrelation']),
+            'probability': float(self._parser[self._key]['CorruptProbability']),
+            'correlation': float(self._parser[self._key]['CorruptCorrelation']),
         }
 
     @property
@@ -137,10 +135,10 @@ class Gentle(Degrade):
                 How much is correlated with the value of the previous packets
         """
         return {
-            'latency': self._parser.get('Gentle', 'LatencyMean'),
-            'jitter': self._parser.get('Gentle', 'LatencyVariance'),
-            'distribution': self._parser.get('Gentle', 'LatencyDistribution'),
-            'correlation': self._parser.get('Gentle', 'LatencyCorrelation'),
+            'latency': self._parser.get(self._key, 'LatencyMean'),
+            'jitter': self._parser.get(self._key, 'LatencyVariance'),
+            'distribution': self._parser.get(self._key, 'LatencyDistribution'),
+            'correlation': self._parser.get(self._key, 'LatencyCorrelation'),
         }
 
     @property
@@ -159,14 +157,13 @@ class Gentle(Degrade):
                 How much is correlated with the value of the previous packets
         """
         return {
-            'probability': float(self._parser['Gentle']['DropProbability']),
-            'correlation': float(self._parser['Gentle']['DropCorrelation']),
+            'probability': float(self._parser[self._key]['DropProbability']),
+            'correlation': float(self._parser[self._key]['DropCorrelation']),
         }
 
 
-class GentleCommand(Command):
-
-    def __init__(self, profile: Gentle):
+class GenericCommand(Command):
+    def __init__(self, profile: Generic):
         self._profile = profile
 
     def execute(self):

@@ -3,9 +3,13 @@ import textwrap
 
 import ifaddr
 
-from tc.gentle import Gentle
+from tc import DegradeInvoker
+from tc.generic import Generic, GenericCommand
 from configparser import ConfigParser
 import os
+
+#todo: statistiche, NAT, gestione con un iterable della lista dei profili,
+# inserimento guidato dei profili e cancellazione
 
 
 def check_interface(interface):
@@ -34,9 +38,18 @@ if __name__ == '__main__':
         type=check_interface,
         help='Specify interface for conditioning. \ndefault: %(default)s. \nAll attributes can be found in config.ini',
     )
+    parser.add_argument(
+        '-p', '--profile',
+        default='Gentle',
+        required= True,
+        help='Specify profile for conditioning. \ndefault: %(default)s. \nAll attributes can be found in config.ini',
+    )
 
     args = parser.parse_args()
     print(args.interface)
 
-    obj = Gentle(config, args.interface)
-    obj.make_command()
+    invoker = DegradeInvoker(
+            GenericCommand(
+                Generic(config, args.interface, args.profile)
+            ))
+    invoker.invoke()
