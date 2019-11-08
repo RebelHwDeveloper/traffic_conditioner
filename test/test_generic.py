@@ -7,7 +7,8 @@ from tc.generic import Generic
 
 interface = "ens33"
 config = ConfigParser()
-key="Gentle"
+key = "Profile1"
+
 
 class TestGeneric(TestCase):
     def setUp(self) -> None:
@@ -16,30 +17,30 @@ class TestGeneric(TestCase):
 
     def test_reorder(self):
         profile = Generic(config, interface, key)
-        self.assertEqual(profile.reorder, bool(config['Gentle']['Reorder']))
+        self.assertEqual(profile.reorder, bool(config[key]['Reorder']))
 
     def test_duplicate(self):
         profile = Generic(config, interface, key)
-        self.assertEqual(profile.duplicate, {'probability': float(config['Gentle']['DuplicateChance']),
-                                             'correlation': float(config['Gentle']['DuplicateCorrelation'])})
+        self.assertEqual(profile.duplicate, {'probability': float(config[key]['DuplicateChance']),
+                                             'correlation': float(config[key]['DuplicateCorrelation'])})
 
     def test_corrupt(self):
         profile = Generic(config, interface, key)
-        self.assertEqual(profile.corrupt, {'probability': float(config['Gentle']['CorruptProbability']),
-                                           'correlation': float(config['Gentle']['CorruptCorrelation'])})
+        self.assertEqual(profile.corrupt, {'probability': float(config[key]['CorruptProbability']),
+                                           'correlation': float(config[key]['CorruptCorrelation'])})
 
     def test_latency(self):
         profile = Generic(config, interface, key)
-        self.assertEqual(profile.latency, {'latency': config['Gentle']['LatencyMean'],
-                                           'jitter': config['Gentle']['LatencyVariance'],
-                                           'distribution': config['Gentle']['LatencyDistribution'],
-                                           'correlation': config['Gentle']['LatencyCorrelation']
+        self.assertEqual(profile.latency, {'latency': config[key]['LatencyMean'],
+                                           'jitter': config[key]['LatencyVariance'],
+                                           'distribution': config[key]['LatencyDistribution'],
+                                           'correlation': config[key]['LatencyCorrelation']
                                            })
 
     def test_drop(self):
         profile = Generic(config, interface, key)
-        self.assertEqual(profile.drop, {'correlation': float(config['Gentle']['DropCorrelation']),
-                                        'probability': float(config['Gentle']['DropProbability'])})
+        self.assertEqual(profile.drop, {'correlation': float(config[key]['DropCorrelation']),
+                                        'probability': float(config[key]['DropProbability'])})
 
     def test___init__(self):
         self.assertRaises(AttributeError, Generic, config, interface="eth0", key=key)
@@ -61,3 +62,9 @@ class TestGeneric(TestCase):
             pass
         self.assertEqual(obj.reset_old_config(), 0)
         # self.assertRaises(RuntimeWarning, "RTNETLINK answers: File exists")
+
+    def test_set_rate(self):
+        # tc qdisc add dev eth0 parent 1: handle 2: tbf rate 1mbit
+        obj = Generic(config, interface, key)
+
+        self.fail()

@@ -1,5 +1,5 @@
 import abc
-import ifaddr as ifaddr
+import ifaddr
 
 class Command(metaclass=abc.ABCMeta):
     """

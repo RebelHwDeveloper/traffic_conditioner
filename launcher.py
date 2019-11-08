@@ -9,7 +9,7 @@ from configparser import ConfigParser
 import os
 
 #todo: statistiche, NAT, gestione con un iterable della lista dei profili,
-# inserimento guidato dei profili e cancellazione
+# inserimento guidato dei profili e cancellazione, LQL library
 
 
 def check_interface(interface):

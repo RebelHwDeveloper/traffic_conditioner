@@ -1,4 +1,5 @@
 import shlex
+
 import subprocess
 
 from tc import Degrade, Command
@@ -6,21 +7,15 @@ from tc import Degrade, Command
 
 class Generic(Degrade):
 
-    # def eliminate_old_config(interface):
-    #     super(Generic, self).eliminate_old_config(interface)
-
     @property
     def reorder(self) -> bool:
-        """This is the property that holds the value for the reordering rate of the 'gentle' profile.
+        """This is the property that holds the value for the reordering rate.
 
             In this profile it is not necessary to specify the reordering because we assume a linearly equivalent
             network so that no packet can have rerouting with different paths, which means pahse-velocity of the packet
             train is constant with respect to the network.
 
-            Other Parameters
-            ----------
-            reorder : bool, optional
-                If the network will reorder randomly packets
+            :return: Whether the network will reorder randomly packets
         """
         return bool(self._parser[self._key]['Reorder'])
 
@@ -32,12 +27,7 @@ class Generic(Degrade):
             equivalent channel environment, like an optical fiber or another good quality medium, with gentle neighbors
             that will not resend back again packets with big latencies.
 
-            Other Parameters
-            ----------
-            probability : int, optional
-                The probability of duplication of a packet
-            correlation : int, optional
-                The correlation of duplication with previous packets
+            :return: Dictionary containing values of probability and correlation
         """
         return {
             'probability': float(self._parser[self._key]['DuplicateChance']),
@@ -45,8 +35,27 @@ class Generic(Degrade):
         }
 
     def reset_old_config(self):
-        """Helper method to add he main hook once the old configuration is wiped out"""
+        """
+        Helper method to remove the old main hook once the old configuration is wiped out.
+        """
         stringa = "tc qdisc del dev " + self.__interface + " root"
+        cmd = shlex.split(stringa)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            o, e = proc.communicate(timeout=1)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            raise RuntimeWarning("Old configuration not eliminated")
+
+        if e.decode('ascii') != "":
+            raise RuntimeError(e.decode('ascii'))
+        return proc.returncode
+
+    def set_rate(self):
+        #tc qdisc add dev eth0 parent 1: handle 2: tbf rate 1mbit
+        stringa = "tc qdisc add dev " + self.__interface + " parent 1: handle 2: tbf rate " \
+                                                            + self.rate +" burst 32kbit latency 1ms"
+        print(stringa)
         cmd = shlex.split(stringa)
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
@@ -70,7 +79,7 @@ class Generic(Degrade):
         """
         # self.add_root_bucket()
 
-        stringa = "tc qdisc add dev " + self.__interface + " root netem "
+        stringa = "tc qdisc add dev " + self.__interface + " root handle 1: netem "
         stringa += "delay " + self.latency['latency'] + "ms " + self.latency['jitter'] + "ms " + self.latency[
             'correlation'] + "% distribution " + self.latency['distribution']
         stringa += " loss " + self.drop['probability'].__str__() + "% " + self.drop['correlation'].__str__() + "%"
@@ -83,11 +92,14 @@ class Generic(Degrade):
             o, e = proc.communicate(timeout=1)
         except subprocess.TimeoutExpired:
             proc.kill()
-            raise RuntimeWarning("Old configuration not eliminated")
+            raise RuntimeWarning("Cannot execute TC command")
 
         if e.decode('ascii') != "":
             if proc.returncode == 2:
-                raise RuntimeWarning(e.decode('ascii') + "\nUsing stale configuration, wipe the old settings")
+                self.reset_old_config()
+                # raise RuntimeWarning(e.decode('ascii') + "\nUsing stale configuration, wipe the old settings")
+
+        self.set_rate()     #Così lui setta il rate todo: modifica che fa schifo...
         return str(proc.returncode)
 
     def __init__(self, config_parser, interface, key):
@@ -103,8 +115,7 @@ class Generic(Degrade):
             In this profile it is not necessary to specify the corruption rate or correlation because this is a good channel
             environment, like an optical fiber or another good quality medium.
 
-            Other Parameters
-            ----------
+            
             probability : int, optional
                 The probability of corruption of a packet
             correlation : int, optional
@@ -116,6 +127,21 @@ class Generic(Degrade):
         }
 
     @property
+    def rate(self):
+        """This is the property that holds the value for the corruption rate of the 'gentle' profile.
+
+            In this profile it is not necessary to specify the corruption rate or correlation because this is a good channel
+            environment, like an optical fiber or another good quality medium.
+
+
+            probability : int, optional
+                The probability of corruption of a packet
+            correlation : int, optional
+                The correlation of corruption with previous packets
+        """
+        return self._parser[self._key]['Rate']
+
+    @property
     def latency(self):
         """This is the property that holds the value for the one-way latency of the 'gentle' profile.
 
@@ -123,8 +149,7 @@ class Generic(Degrade):
             Einstein. With latency we can specify the distribution. In this case I assumed a Gaussian PDF which means I
             know that the vast majority of the latency experienced by my packets will be something around mean value.
 
-            Other Parameters
-            ----------
+            
             latency : int
                 One-way latency of the packet
             jitter : int, optional
@@ -149,8 +174,7 @@ class Generic(Degrade):
             big values of drop probability, because it's a gentle situation. I neglect every network saturation effect
             so in this model it is not possible to simulate AQM mechanism such as RED or other variants.
 
-            Other Parameters
-            ----------
+            
             probability : int, optional
                 Drop probability
             correlation : int, optional
